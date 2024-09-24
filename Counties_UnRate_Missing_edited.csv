@@ -1,0 +1,20 @@
+,Series_Type,Series_Name,County,State,Lookup_id
+2,AKANCH0URN,"Unemployment Rate in Anchorage Borough/municipality, AK",Anchorage Borough/municipality,AK,2020
+9,AKJUNE0URN,"Unemployment Rate in Juneau Borough/City, AK",Juneau Borough/City,AK,2110
+18,AKPRIN1URN,"Unemployment Rate in Prince of Wales-Outer Ketchikan Census Area, AK",Prince of Wales-Outer Ketchikan Census Area,AK,2198
+19,AKSITK0URN,"Unemployment Rate in Sitka Borough/City, AK",Sitka Borough/City,AK,2220
+20,AKSKAG1URN,"Unemployment Rate in Skagway-Hoonah-Angoon Census Area, AK",Skagway-Hoonah-Angoon Census Area,AK,2230
+23,AKWRAN0URN,"Unemployment Rate in Wrangell-Petersburg Census Area, AK",Wrangell-Petersburg Census Area,AK,2195
+220,CASANF0URN,"Unemployment Rate in San Francisco County/City, CA",San Francisco County/City,CA,6075
+248,COBROO4URN,"Unemployment Rate in Broomfield County/City, CO",Broomfield County/City,CO,8014
+257,CODENV5URN,"Unemployment Rate in Denver County/City, CO",Denver County/City,CO,8031
+313,DCDIST5URN,Unemployment Rate in the District of Columbia,District of Columbia,DC,11001
+544,HIHONO7URN,"Unemployment Rate in Honolulu County/City, HI",Honolulu County/City,HI,15003
+739,ILLASA0URN,"Unemployment Rate in La Salle County, IL",La Salle County,IL,17099
+1139,LALASA9URN,"Unemployment Rate in La Salle Parish, LA",La Salle Parish,LA,22059
+1169,LAUCT028638000000003,"Unemployment Rate in Wrangell Borough/City, AK",Wrangell Borough/City,AK,2275
+1188,MANANT9URN,"Unemployment Rate in Nantucket County/town, MA",Nantucket County/town,MA,25019
+1534,MSDEURN,"Unemployment Rate in De Soto County, MS",De Soto County,MS,28033
+1939,NMDEBA1URN,"Unemployment Rate in DeBaca County, NM",DeBaca County,NM,35011
+1940,NMDONA5URN,"Unemployment Rate in Dona Ana County, NM",Dona Ana County,NM,35013
+2296,PAPHIL5URN,"Unemployment Rate in Philadelphia County/City, PA",Philadelphia County/City,PA,42101
