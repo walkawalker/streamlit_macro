@@ -19,9 +19,9 @@ def create_chloropleth(df, counties_url):
             alt.Tooltip("County:O", title="Name"),
             alt.Tooltip("Lowest_Unemployment:O", title="Lowest UnRate"),
             alt.Tooltip("Highest_Unemployment:O", title="Highest UnRate"),
-            alt.Tooltip("Lowest_Unemployment_Date:O", title="Lowest UnRate Date"),
-            alt.Tooltip("Highest_Unemployment_Date:O", title="Highest UnRate Date"),
-            alt.Tooltip("Value:O", title="Rate")] #Highest_Unemployment	Lowest_Unemploymen
+            alt.Tooltip("Lowest_Unemployment_Date:T", title="Lowest UnRate Date",format='%Y-%m-%d'),
+            alt.Tooltip("Highest_Unemployment_Date:T", title="Highest UnRate Date",format='%Y-%m-%d'),
+            alt.Tooltip("Value:O", title="Rate")] 
     ).transform_lookup(
         lookup='id',
         from_=alt.LookupData(df, 'Lookup_id', ['Value', 'County','Highest_Unemployment'	,'Lowest_Unemployment','Highest_Unemployment_Date','Lowest_Unemployment_Date'])
@@ -33,7 +33,8 @@ def create_chloropleth(df, counties_url):
     ).add_params(selection)
 
     return base
-def flatten_data_chloro(chloropleth_df):
+def flatten_data_chloro(chloropleth_df,selected_date):
+   
     min_max_dates_df = chloropleth_df.groupby(['County', 'State'], as_index=False).agg(
     Highest_Unemployment=('Value', 'max'),
     Lowest_Unemployment=('Value', 'min'))
@@ -47,7 +48,7 @@ def flatten_data_chloro(chloropleth_df):
     min_max_with_dates_df = pd.merge(min_max_dates_df, highest_dates_df, on=['County', 'State'], how='left')
     min_max_with_dates_df = pd.merge(min_max_with_dates_df, lowest_dates_df, on=['County', 'State'], how='left')
 
-    filtered_df = chloropleth_df[chloropleth_df['DATE'] == "2024-07-01"]
+    filtered_df = chloropleth_df[chloropleth_df['DATE'] == selected_date]
 
     return pd.merge(filtered_df, min_max_with_dates_df, on=['County', 'State'], how='left')
 
@@ -137,14 +138,15 @@ def create_histogram(df_GDP, option, start_date, end_date, step_size):
         df_GDP = df_GDP.query(f'USREC == {period_flag} and ((date >= "{start_date}") and (date <= "{end_date}"))')
     else:
         df_GDP = df_GDP.query(f'((date >= "{start_date}") and (date <= "{end_date}"))')
-    print(df_GDP)
+  
     select = alt.selection_point("Point_Selection", encodings=['x'])
 
     bars = alt.Chart(df_GDP).mark_bar().encode(
         alt.X("percent_change:Q").bin(maxbins=20,step=step_size).scale(domain=[-40,40]).title('Percent Change in GDP (bins)'),
         alt.Y('count()'),
         alt.Color("percent_change:Q").bin(maxbins=20,step=step_size).scale(scheme='pinkyellowgreen'),
-    ).add_params(select).properties(width=500,height=500)
+    ).add_params(select
+    ).properties(width=500,height=500)
 
     bars_selection = alt.Chart(df_GDP).mark_bar().encode(
         alt.X("percent_change:Q").bin(maxbins=20,step=step_size).scale(domain=[-40,40]).title('Percent Change in GDP (bins)'),
@@ -184,11 +186,16 @@ def create_histogram(df_GDP, option, start_date, end_date, step_size):
     ).configure_view(strokeWidth=0)
 
     return histogram_data_table
+
 def get_recession_indicator(df): 
     return pdr.get_data_fred('USREC',start = min(df.date)).reset_index().rename(columns={'DATE' : 'date'})
+def run_button_clicked(chloropleth_df, counties_url, selected_date):
+    with st.container():
+        # Generate the choropleth chart using the selected date
+        st.altair_chart(create_chloropleth(flatten_data_chloro(chloropleth_df, selected_date), counties_url), use_container_width=True)
 
 GDP_url = 'https://apps.bea.gov/national/Release/XLS/Survey/Section1All_xls.xlsx'
-url_2 = "https://view.officeapps.live.com/op/view.aspx?src=https%3A%2F%2Fraw.githubusercontent.com%2Fwalkawalker%2Fstreamlit_macro%2Frefs%2Fheads%2Fmain%2FCounties_UnRate.xls&wdOrigin=BROWSELINK"
+url_2 = "C:\\Users\\whill\\streamlit_macro\\Counties_UnRate.xls"
 match_keys_url = "https://www2.census.gov/geo/docs/reference/codes2020/national_county2020.txt"
 names_url = "https://raw.githubusercontent.com/walkawalker/streamlit_macro/refs/heads/main/Counties_UnRate_Names.csv"
 missing_url = "https://raw.githubusercontent.com/walkawalker/streamlit_macro/refs/heads/main/Counties_UnRate_Missing_edited.csv"
@@ -210,12 +217,47 @@ match_df = match_state_codes(df_names, df_state_codes)
 resultant_df = pd.concat([match_df,df_missing])
 df_county_long = get_county_dataset(url_2)
 chloropleth_df = df_county_long.merge(resultant_df, on='Series_Type', how='left')
+chloropleth_df['DATE'] = pd.to_datetime(chloropleth_df['DATE'], format='%Y-%m-%d')
+unique_dates_chloro = sorted(chloropleth_df['DATE'].unique())
+st.set_page_config(layout="wide")
+'''if 'run_once' not in st.session_state:
+    st.session_state.run_once = False'''
 
 with st.container():
+    st.title("% Change in Real GDP Boxplots by Quarter")
     st.altair_chart(create_boxplot(df_GDP), use_container_width=True)
-    
-'''
-with st.container():
+
+def run_button_clicked(chloropleth_df, counties_url, selected_date):
+    with st.container():
+        # Generate the choropleth chart using the selected date
+        st.altair_chart(create_chloropleth(flatten_data_chloro(chloropleth_df, selected_date), counties_url), use_container_width=True)
+
+# Store the initial state for the slider and the run flag
+if 'run_once' not in st.session_state:
+    st.session_state.run_once = False  # Controls whether the code should run
+    st.session_state.selected_date = None  # Stores the selected date
+
+# Create the slider without triggering a rerun on every change
+selected_date = st.select_slider(
+    "Select a date range",
+    options=unique_dates_chloro,
+    value=max(unique_dates_chloro),
+    format_func=lambda x: x.strftime('%Y-%m-%d'),
+    key="selected_date_slider"  # Sets the slider value into session state
+)
+
+# Button to control execution
+if st.button('Run'):
+    # Store the selected date in session state
+    st.session_state.selected_date = selected_date
+    st.session_state.run_once = True  # Set the flag to trigger the run
+
+# Only execute the code when the button is clicked
+if st.session_state.run_once:
+    # Pass the necessary arguments (`chloropleth_df` and `counties_url`) to the function
+    run_button_clicked(st.session_state.selected_date, chloropleth_df, counties_url)    
+
+'''with st.container():
     unique_dates = sorted(merge_GDP_ind_df['date'].unique())
     start_date, end_date = st.select_slider(
     "Select a date range",
@@ -227,7 +269,21 @@ with st.container():
         st.session_state.data = merge_GDP_ind_df
 
     
-    st.altair_chart(create_histogram(merge_GDP_ind_df, option, start_date, end_date, 3),key="alt_chart", on_select="rerun", use_container_width=True)
+    st.altair_chart(create_histogram(merge_GDP_ind_df, option, start_date, end_date, 3), on_select="rerun" ,use_container_width=True)
+    #key="alt_chart", on_select="rerun", use_container_width=True)
 '''
-with st.container():
-    st.altair_chart(create_chloropleth(flatten_data_chloro(chloropleth_df),counties_url), use_container_width=True)
+'''if 'run_once' not in st.session_state:
+    st.session_state.run_once = False'''
+'''
+selected_date = st.select_slider(
+    "Select a date range",
+    options=unique_dates_chloro,
+    value = max(unique_dates_chloro),
+    format_func=lambda x: x.strftime('%Y-%m-%d'))
+    if not st.session_state.run_once:
+    run_button_clicked(selected_date)
+    st.session_state.run_once = True
+if st.button('Run'):
+    run_button_clicked(selected_date)'''
+
+
